@@ -14,20 +14,20 @@ private:
     // level_[i] is the level of group with root i
 
 public:
-    Groups() = default;
-    explicit Groups(double level);
+    Groups(int32_t N);
 
+    void    add_group(int32_t x, double litters_of_water) noexcept;
     int32_t find(int32_t x) noexcept;
     void    unite(int32_t x, int32_t y) noexcept;
-
-    
+    void    add_water(int32_t x, double litters_of_water) noexcept;
+    double  get_level(int32_t x) noexcept;
 };
 
 // ----------------------------------------------------------------------------
 // @section Implementations
 // Implementations
 // ----------------------------------------------------------------------------
-inline Groups::Groups(double level) : level_(1, level), parent_or_size_(1, -1) {}
+inline Groups::Groups(int32_t N) : parent_or_size_(N, 0), level_(N, 0) {}
 
 inline int32_t Groups::find(int32_t x) noexcept {
     int32_t root = x;
@@ -69,4 +69,18 @@ inline void Groups::unite(int32_t x, int32_t y) noexcept {
     level_[root_x] = total_level;
 }
 
+inline void Groups::add_water(int32_t x, double litters_of_water) noexcept {
+    int32_t root_x = find(x);
+    level_[root_x] += litters_of_water / static_cast<double>(-parent_or_size_[root_x]);
+}
 
+inline void Groups::add_group(int32_t x, double litters_of_water) noexcept {
+    parent_or_size_[x] = -1;
+    level_[x] = litters_of_water;
+}
+
+inline double Groups::get_level(int32_t x) noexcept {
+    int32_t root = find(x);
+
+    return level_[root];
+}
