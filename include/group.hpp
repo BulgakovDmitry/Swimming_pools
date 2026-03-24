@@ -20,7 +20,7 @@ public:
     int32_t find(int32_t x) noexcept;
     void    unite(int32_t x, int32_t y) noexcept;
 
-
+    
 };
 
 // ----------------------------------------------------------------------------
