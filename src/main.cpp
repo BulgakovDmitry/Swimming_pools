@@ -3,6 +3,7 @@
 #include <random>
 #include <iostream>
 #include <fstream>
+#include <chrono>
 #include "group.hpp"
 
 static void measure(std::ofstream& output, Groups& groups, const int32_t N);
@@ -15,6 +16,9 @@ int main() {
         return 1;
     }
 
+    double dt = 0;
+    using clock = std::chrono::steady_clock;
+
     const int32_t N = 5;          // Количество бассейнов
     const int32_t K = 2;          // Количество каналов
     const int32_t L = 2;          // Количество добавлений воды
@@ -25,7 +29,10 @@ int main() {
 
     std::random_device rd;          
     std::mt19937 gen(rd());        
+    std::uniform_int_distribution<> dist_add_water    (A, B);
+    std::uniform_int_distribution<> dist_swimming_pool(0, N - 1);
 
+    auto t1 = clock::now();
     // 1. создать бассейны N штук ===================================
     for (int32_t i = 0; i < N; ++i) {
         groups.add_group(i, static_cast<double>(i + 2));
@@ -33,14 +40,13 @@ int main() {
     // ==============================================================
 
     // 2. добавить воды в каждый бассейн ============================
-    std::uniform_int_distribution<> dist_add_water(A, B);
     for (int32_t i = 0; i < N; ++i) {
         groups.add_water(i, dist_add_water(gen));
     }
     // ==============================================================
+    measure(output, groups, N);
 
     // 3. K бассейнов случайно соединить каналами ===================
-    std::uniform_int_distribution<> dist_swimming_pool(0, N - 1);
     std::set<std::pair<int32_t, int32_t>> used_channels;
     size_t number_of_channels = 0;
 
@@ -64,13 +70,35 @@ int main() {
     measure(output, groups, N);
     // ==============================================================
 
+    // 5. вновь добавить воды в L бассейнов =========================
+    for (size_t i = 0; i < L; ++i) {
+        int32_t sp = dist_swimming_pool(gen);
+        groups.add_water(sp, dist_add_water(gen));
+    }
+    // ==============================================================
 
+    // 6. вновь измерить ============================================
+    measure(output, groups, N);
+    // ==============================================================
 
-
-
-
-
+    // 7. Разорвать M каналов между бассейнами ======================
     
+    // ==============================================================
+
+    // 8. вновь добавить воды в L бассейнов =========================
+    for (size_t i = 0; i < L; ++i) {
+        int32_t sp = dist_swimming_pool(gen);
+        groups.add_water(sp, dist_add_water(gen));
+    }
+    // ==============================================================
+
+    // 9. вновь измерить ============================================
+    measure(output, groups, N);
+    // ==============================================================    
+    auto t2 = clock::now();
+
+    dt = std::chrono::duration<double, std::milli>(t2 - t1).count();
+    std::cout << "total time: " << dt << " ms\n";
 }
 
 static void measure(std::ofstream& output, Groups& groups, const int32_t N) {
