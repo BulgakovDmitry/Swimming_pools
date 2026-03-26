@@ -1,12 +1,14 @@
 #include <cstddef>
-#include <set>
 #include <random>
 #include <iostream>
 #include <fstream>
 #include <chrono>
+#include <algorithm>
+#include <unordered_set>
 #include "group.hpp"
 
 static void measure(std::ofstream& output, Groups& groups, const int32_t N);
+static uint64_t make_channel_key(int32_t a, int32_t b);
 
 int main() {
     std::string output_path = "output.txt";
@@ -19,35 +21,42 @@ int main() {
     double dt = 0;
     using clock = std::chrono::steady_clock;
 
-    const int32_t N = 5;          // Количество бассейнов
-    const int32_t K = 2;          // Количество каналов
-    const int32_t L = 2;          // Количество добавлений воды
-    const int32_t M = 3;          // Количество разрывов
+    // const int32_t N = 5;          // Количество бассейнов
+    // const int32_t K = 2;          // Количество каналов
+    // const int32_t L = 2;          // Количество добавлений воды
+    // const int32_t M = 1;          // Количество разрывов
+    // const int32_t A = 1, B = 500; // Количество добавляемой воды в каждый бассейн (от и до)
+
+    const int32_t N = 38'000'000;          // Количество бассейнов
+    const int32_t K = 11'000'000;          // Количество каналов
+    const int32_t L = 29'000'000;          // Количество добавлений воды
+    const int32_t M = 3'000'000;          // Количество разрывов
     const int32_t A = 1, B = 500; // Количество добавляемой воды в каждый бассейн (от и до)
     Groups groups{N};
     
-
     std::random_device rd;          
     std::mt19937 gen(rd());        
     std::uniform_int_distribution<> dist_add_water    (A, B);
     std::uniform_int_distribution<> dist_swimming_pool(0, N - 1);
 
     auto t1 = clock::now();
+    std::cout << "step 1 2... " << std::flush; 
     // 1. создать бассейны N штук ===================================
-    for (int32_t i = 0; i < N; ++i) {
-        groups.add_group(i, static_cast<double>(i + 2));
-    }
-    // ==============================================================
-
     // 2. добавить воды в каждый бассейн ============================
     for (int32_t i = 0; i < N; ++i) {
-        groups.add_water(i, dist_add_water(gen));
+        groups.add_group(i, dist_add_water(gen));
     }
     // ==============================================================
-    measure(output, groups, N);
+    std::cout << "is completed\n";
 
+    //measure(output, groups, N);
+
+    std::cout << "step 3 ... " <<std::flush; 
     // 3. K бассейнов случайно соединить каналами ===================
-    std::set<std::pair<int32_t, int32_t>> used_channels;
+    std::unordered_set<uint64_t> used_channels;
+    used_channels.reserve(static_cast<size_t>(K) * 2);
+    std::vector<Channel> channels;
+    channels.reserve(K);
     size_t number_of_channels = 0;
 
     while (number_of_channels < K) {
@@ -56,45 +65,72 @@ int main() {
 
         if (sp_1 == sp_2) continue;
 
+        uint64_t key = make_channel_key(sp_1, sp_2);
+
+        if (used_channels.count(key)) continue;
+
+        used_channels.insert(key);
         if (sp_1 > sp_2) std::swap(sp_1, sp_2);
 
-        if (used_channels.count({sp_1, sp_2})) continue;
-
-        used_channels.insert({sp_1, sp_2});
+        channels.emplace_back(sp_1, sp_2);
         groups.unite(sp_1, sp_2);
         ++number_of_channels;
     }
     // ==============================================================
+    std::cout << "is completed\n";
 
+    std::cout << "step 4 ... " << std::flush; 
     // 4. измерить воду в каждом бассейне ===========================
-    measure(output, groups, N);
+    //measure(output, groups, N);
     // ==============================================================
+    std::cout << "is completed\n";
 
+    std::cout << "step 5 ... " << std::flush; 
     // 5. вновь добавить воды в L бассейнов =========================
     for (size_t i = 0; i < L; ++i) {
         int32_t sp = dist_swimming_pool(gen);
         groups.add_water(sp, dist_add_water(gen));
     }
     // ==============================================================
+    std::cout << "is completed\n";
 
+    std::cout << "step 6 ... " << std::flush; 
     // 6. вновь измерить ============================================
-    measure(output, groups, N);
+    //measure(output, groups, N);
     // ==============================================================
+    std::cout << "is completed\n";
 
+    std::cout << "step 7 ... " << std::flush; 
     // 7. Разорвать M каналов между бассейнами ======================
-    
-    // ==============================================================
+    std::vector<size_t> open_channels(channels.size());
+    std::iota(open_channels.begin(), open_channels.end(), 0);
 
+    std::shuffle(open_channels.begin(), open_channels.end(), gen);
+
+    size_t to_close = std::min(static_cast<size_t>(M), channels.size());
+
+    for (size_t i = 0; i < to_close; ++i) {
+        channels[open_channels[i]].is_open = false;
+    }
+
+    groups.close_channels(N, channels);
+    // ==============================================================
+    std::cout << "is completed\n";
+
+    std::cout << "step 8 ... " << std::flush; 
     // 8. вновь добавить воды в L бассейнов =========================
     for (size_t i = 0; i < L; ++i) {
         int32_t sp = dist_swimming_pool(gen);
         groups.add_water(sp, dist_add_water(gen));
     }
     // ==============================================================
+    std::cout << "is completed\n";
 
+    std::cout << "step 9 ... " << std::flush; 
     // 9. вновь измерить ============================================
-    measure(output, groups, N);
-    // ==============================================================    
+    //measure(output, groups, N);
+    // ============================================================== 
+    std::cout << "is completed\n";
     auto t2 = clock::now();
 
     dt = std::chrono::duration<double, std::milli>(t2 - t1).count();
@@ -104,7 +140,16 @@ int main() {
 static void measure(std::ofstream& output, Groups& groups, const int32_t N) {
     output << "========= measurement =========\n";
     for (int32_t i = 0; i < N; ++i) {
-        output << "channel " << i << ": " << groups.get_level(i) << '\n';
+        output << "pool " << i << ": " << groups.get_level(i) << '\n';
     }
     output << std::endl;
+}
+
+static uint64_t make_channel_key(int32_t a, int32_t b) {
+    if (a > b) {
+        std::swap(a, b);
+    }
+
+    return (static_cast<uint64_t>(static_cast<uint32_t>(a)) << 32) |
+           static_cast<uint32_t>(b);
 }

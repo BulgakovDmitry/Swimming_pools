@@ -4,6 +4,15 @@
 #include <stddef.h>
 #include <cstdint>
 
+struct Channel {
+    int32_t channel_x;
+    int32_t channel_y;
+    bool    is_open;
+
+    Channel(int32_t x, int32_t y, bool is_open_flag = true) 
+        : channel_x(x), channel_y(y), is_open(is_open_flag) {}
+};
+
 struct Groups final {
 private:
     std::vector<int32_t> parent_or_size_; 
@@ -16,11 +25,12 @@ private:
 public:
     Groups(int32_t N);
 
-    void    add_group(int32_t x, double litters_of_water) noexcept;
-    int32_t find(int32_t x) noexcept;
-    void    unite(int32_t x, int32_t y) noexcept;
-    void    add_water(int32_t x, double litters_of_water) noexcept;
-    double  get_level(int32_t x) noexcept;
+    void         add_group     (int32_t x, double litters_of_water) noexcept;
+    int32_t      find          (int32_t x) noexcept;
+    void         unite         (int32_t x, int32_t y) noexcept;
+    void         add_water     (int32_t x, double litters_of_water) noexcept;
+    double       get_level     (int32_t x) noexcept;
+    void         close_channels(const int32_t N, const std::vector<Channel>& channels);
 };
 
 // ----------------------------------------------------------------------------
@@ -83,4 +93,24 @@ inline double Groups::get_level(int32_t x) noexcept {
     int32_t root = find(x);
 
     return level_[root];
+}
+
+inline void Groups::close_channels(const int32_t N, const std::vector<Channel>& channels) {
+    std::vector<double> water(N, 0.0);
+    for (int32_t i = 0; i < N; ++i) {
+        water[i] = get_level(i);
+    }
+
+    parent_or_size_.assign(N, 0);
+    level_.assign(N, 0.0);
+
+    for (int32_t i = 0; i < N; ++i) {
+        add_group(i, water[i]);
+    }
+
+    for (const Channel& ch : channels) {
+        if (ch.is_open) {
+            unite(ch.channel_x, ch.channel_y);
+        }
+    }
 }
