@@ -7,68 +7,118 @@
 #include <algorithm>
 #include <numeric>
 #include <fstream>
+#include <cstddef>
 
-constexpr int32_t N = 38'000'000; // Количество бассейнов
-constexpr int32_t K = 11'000'000; // Количество каналов
-constexpr int32_t L = 29'000'000; // Количество добавлений воды
-constexpr int32_t M = 3'000'000;  // Количество разрывов
-constexpr int32_t A = 1, B = 500; // Количество добавляемой воды в каждый бассейн (от и до)
+class Driver final {
+private:
+    Groups groups_;
+    std::vector<Channel> channels_;
 
+    int32_t N_;     // Количество бассейнов
+    int32_t K_;     // Количество каналов
+    int32_t L_;     // Количество добавлений воды
+    int32_t M_;     // Количество разрывов
+    int32_t A_, B_; // Количество добавляемой воды в каждый бассейн (от и до)
 
-void create_N_groups(Groups& groups, const int32_t N);
+public:
+    Driver(const int32_t N = 38'000'000, 
+           const int32_t K = 11'000'000,
+           const int32_t L = 29'000'000, 
+           const int32_t M = 3'000'000, 
+           const int32_t A = 1, 
+           const int32_t B = 500) 
+        : groups_(N), channels_(), N_(N), K_(K), L_(L), M_(M), A_(A), B_(B) {
+            channels_.reserve(K_);
+        }
+    
+    int32_t N() const noexcept {return N_;}
+    int32_t K() const noexcept {return K_;}
+    int32_t L() const noexcept {return L_;}
+    int32_t M() const noexcept {return M_;}
+    int32_t A() const noexcept {return A_;}
+    int32_t B() const noexcept {return B_;}
 
-template <typename Pool>
-void connect_pulls_with_channels(Groups& groups, const int32_t K, std::vector<Channel>& channels, Pool pool);
+    void create_N_groups();
 
-void measure_water(Groups& groups, const int32_t N);
+    template<typename Water, typename Group>
+    void add_water_to_n_groups(int32_t n, Water liters_of_water, Group group_index);
 
-template <typename Water, typename Group>
-void add_water_to_groups(Groups& groups, int32_t n, Water liters_of_water, Group group_index);
+    template<typename Pool>
+    void connect_pulls_with_channels(Pool pool);
 
-template <typename Generator>
-void break_channels(Groups& groups, const int32_t N,
-                    std::vector<Channel>& channels,
-                    int32_t M,
-                    Generator& gen);
+    void measure_water();
 
-void break_inds_channels(Groups& groups, const int32_t N,
-                               std::vector<Channel>& channels,
-                               const std::vector<int32_t>& inds);
+    template<typename Generator>
+    void break_channels(Generator& gen);
+    
+    void break_inds_channels(const std::vector<int32_t>& inds);
+    
+private:
+    static void print_completed();
+    static uint64_t make_channel_key(int32_t a, int32_t b);
 
-static inline void     print_completed();
-static inline void     measure(Groups& groups, const int32_t N, std::ofstream& output); // for debug
-static inline void     measure(Groups& groups, const int32_t N);
-static inline uint64_t make_channel_key(int32_t a, int32_t b);
+    void measure(std::ofstream& output);
+    void measure();
+    
+};
 
-void create_N_groups(Groups& groups, const int32_t N) {
+void Driver::create_N_groups() {
     std::cout << "pools creation ... " << std::flush; 
 
-    for (int32_t i = 0; i < N; ++i) {
-        groups.add_group(i, 0);
+    for (int32_t i = 0; i < N_; ++i) {
+       groups_.add_group(i, 0);
     }
 
     print_completed();
 }
 
-template <typename Water, typename Group>
-void add_water_to_groups(Groups& groups, int32_t n, Water liters_of_water, Group group_index) {
+template<typename Water, typename Group>
+void Driver::add_water_to_n_groups(int32_t n, Water liters_of_water, Group group_index) {
     std::cout << "adding water ... " << std::flush; 
 
     for (int32_t i = 0; i < n; ++i) {
-        groups.add_water(group_index(), liters_of_water());
+        groups_.add_water(group_index(), liters_of_water());
     }
 
     print_completed();
 }
 
-template <typename Pool>
-void connect_pulls_with_channels(Groups& groups, const int32_t K, std::vector<Channel>& channels, Pool pool) {
+void Driver::print_completed() {
+    std::cout << "is completed\n";
+}
+
+uint64_t Driver::make_channel_key(int32_t a, int32_t b) {
+    if (a > b) {
+        std::swap(a, b);
+    }
+
+    return (static_cast<uint64_t>(static_cast<uint32_t>(a)) << 32) |
+           static_cast<uint32_t>(b);
+}
+
+void Driver::measure(std::ofstream& output) {
+    output << "========= measurement =========\n";
+    for (int32_t i = 0; i < N_; ++i) {
+        output << "pool " << i << ": " << groups_.get_level(i) << '\n';
+    }
+    output << std::endl;
+}
+
+void Driver::measure() {
+    for (int32_t i = 0; i < N_; ++i) {
+        groups_.get_level(i);
+        asm volatile("" : : "g"(i) : "memory");
+    }
+}
+
+template<typename Pool>
+void Driver::connect_pulls_with_channels(Pool pool) {
     std::cout << "connect pools with channels ... " << std::flush; 
     std::unordered_set<uint64_t> used_channels;
-    used_channels.reserve(static_cast<size_t>(K) * 2);
+    used_channels.reserve(static_cast<size_t>(K_) * 2);
     size_t number_of_channels = 0;
 
-    while (number_of_channels < K) {
+    while (number_of_channels < K_) {
         int32_t sp_1 = pool();
         int32_t sp_2 = pool();
 
@@ -81,88 +131,45 @@ void connect_pulls_with_channels(Groups& groups, const int32_t K, std::vector<Ch
         used_channels.insert(key);
         if (sp_1 > sp_2) std::swap(sp_1, sp_2);
 
-        channels.emplace_back(sp_1, sp_2);
-        groups.unite(sp_1, sp_2);
+        channels_.emplace_back(sp_1, sp_2);
+        groups_.unite(sp_1, sp_2);
         ++number_of_channels;
     }
     print_completed();
 }
 
-void measure_water(Groups& groups, const int32_t N) {
+void Driver::measure_water() {
     std::cout << "measuring the water ... " << std::flush; 
-    measure(groups, N);
+    measure();
     print_completed();
 }
 
-template <typename Generator>
-void break_channels(Groups& groups, const int32_t N,
-                    std::vector<Channel>& channels,
-                    int32_t M,
-                    Generator& gen) {
-    std::vector<int32_t> open_channels(channels.size());
+template<typename Generator>
+void Driver::break_channels(Generator& gen) {
+    std::vector<int32_t> open_channels(channels_.size());
     std::iota(open_channels.begin(), open_channels.end(), 0);
 
     std::shuffle(open_channels.begin(), open_channels.end(), gen);
 
-    int32_t to_close = std::min(M, static_cast<int32_t>(channels.size()));
+    int32_t to_close = std::min(M_, static_cast<int32_t>(channels_.size()));
 
     std::vector<int32_t> indices_to_close(open_channels.begin(),
                                          open_channels.begin() + to_close);
 
-    break_inds_channels(groups, N, channels, indices_to_close);
+    break_inds_channels(indices_to_close);
 }
 
-void break_inds_channels(Groups& groups, const int32_t N,
-                               std::vector<Channel>& channels,
-                               const std::vector<int32_t>& inds) {
+void Driver::break_inds_channels(const std::vector<int32_t>& inds) {
     std::cout << "breaking channels ... " << std::flush;
 
     for (int32_t idx : inds) {
-        if (idx < channels.size()) {
-            channels[idx].is_open = false;
+        if (idx < channels_.size()) {
+            channels_[idx].is_open = false;
         }
     }
 
-    groups.close_channels(N, channels);
+    groups_.close_channels(N_, channels_);
     print_completed();
 }
-
-
-static inline uint64_t make_channel_key(int32_t a, int32_t b) {
-    if (a > b) {
-        std::swap(a, b);
-    }
-
-    return (static_cast<uint64_t>(static_cast<uint32_t>(a)) << 32) |
-           static_cast<uint32_t>(b);
-}
-
-static inline void measure(Groups& groups, const int32_t N, std::ofstream& output) {
-    output << "========= measurement =========\n";
-    for (int32_t i = 0; i < N; ++i) {
-        output << "pool " << i << ": " << groups.get_level(i) << '\n';
-    }
-    output << std::endl;
-}
-
-static inline void measure(Groups& groups, const int32_t N) {
-    for (int32_t i = 0; i < N; ++i) {
-        groups.get_level(i);
-        asm volatile("" : : "g"(i) : "memory");
-    }
-}
-
-static inline void print_completed() {
-    std::cout << "is completed\n";
-}
-
-
-class Driver final {
-private:
-    Groups groups;
-
-public:
-    
-};
 
 #endif // DRIVER_HPP
