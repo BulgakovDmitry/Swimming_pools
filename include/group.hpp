@@ -13,7 +13,7 @@ struct Channel {
         : channel_x(x), channel_y(y), is_open(is_open_flag) {}
 };
 
-struct Groups final {
+class Groups final {
 private:
     std::vector<int32_t> parent_or_size_; 
     // parent_or_size_[i] < 0  - i is a root of group
@@ -28,9 +28,12 @@ public:
     void         add_group     (int32_t x, double litters_of_water) noexcept;
     int32_t      find          (int32_t x) noexcept;
     void         unite         (int32_t x, int32_t y) noexcept;
-    void         add_water     (int32_t x, double litters_of_water) noexcept;
+    void         add_water     (int32_t x, double litters_of_water = 0) noexcept;
     double       get_level     (int32_t x) noexcept;
     void         close_channels(const int32_t N, const std::vector<Channel>& channels);
+
+private:
+    int32_t size(int32_t root) const noexcept;
 };
 
 // ----------------------------------------------------------------------------
@@ -81,10 +84,10 @@ inline void Groups::unite(int32_t x, int32_t y) noexcept {
 
 inline void Groups::add_water(int32_t x, double litters_of_water) noexcept {
     int32_t root_x = find(x);
-    level_[root_x] += litters_of_water / static_cast<double>(-parent_or_size_[root_x]);
+    level_[root_x] += litters_of_water / static_cast<double>(size(root_x));
 }
 
-inline void Groups::add_group(int32_t x, double litters_of_water) noexcept {
+inline void Groups::add_group(int32_t x, double litters_of_water = 0) noexcept {
     parent_or_size_[x] = -1;
     level_[x] = litters_of_water;
 }
@@ -113,4 +116,8 @@ inline void Groups::close_channels(const int32_t N, const std::vector<Channel>& 
             unite(ch.channel_x, ch.channel_y);
         }
     }
+}
+
+inline int32_t Groups::size(int32_t root) const noexcept {
+    return -parent_or_size_[root];
 }
