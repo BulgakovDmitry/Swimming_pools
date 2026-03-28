@@ -31,6 +31,9 @@ public:
             channels_.reserve(K_);
         }
     
+    const Groups& groups() const noexcept { return groups_; }
+    Groups& groups() noexcept { return groups_; }
+
     int32_t N() const noexcept {return N_;}
     int32_t K() const noexcept {return K_;}
     int32_t L() const noexcept {return L_;}
@@ -62,7 +65,7 @@ private:
     
 };
 
-void Driver::create_N_groups() {
+inline void Driver::create_N_groups() {
     std::cout << "pools creation ... " << std::flush; 
 
     for (int32_t i = 0; i < N_; ++i) {
@@ -83,11 +86,11 @@ void Driver::add_water_to_n_groups(int32_t n, Water liters_of_water, Group group
     print_completed();
 }
 
-void Driver::print_completed() {
+inline void Driver::print_completed() {
     std::cout << "is completed\n";
 }
 
-uint64_t Driver::make_channel_key(int32_t a, int32_t b) {
+inline uint64_t Driver::make_channel_key(int32_t a, int32_t b) {
     if (a > b) {
         std::swap(a, b);
     }
@@ -96,7 +99,7 @@ uint64_t Driver::make_channel_key(int32_t a, int32_t b) {
            static_cast<uint32_t>(b);
 }
 
-void Driver::measure(std::ofstream& output) {
+inline void Driver::measure(std::ofstream& output) {
     output << "========= measurement =========\n";
     for (int32_t i = 0; i < N_; ++i) {
         output << "pool " << i << ": " << groups_.get_level(i) << '\n';
@@ -104,7 +107,7 @@ void Driver::measure(std::ofstream& output) {
     output << std::endl;
 }
 
-void Driver::measure() {
+inline void Driver::measure() {
     for (int32_t i = 0; i < N_; ++i) {
         groups_.get_level(i);
         asm volatile("" : : "g"(i) : "memory");
@@ -138,7 +141,7 @@ void Driver::connect_pulls_with_channels(Pool pool) {
     print_completed();
 }
 
-void Driver::measure_water() {
+inline void Driver::measure_water() {
     std::cout << "measuring the water ... " << std::flush; 
     measure();
     print_completed();
@@ -159,7 +162,7 @@ void Driver::break_channels(Generator& gen) {
     break_inds_channels(indices_to_close);
 }
 
-void Driver::break_inds_channels(const std::vector<int32_t>& inds) {
+inline void Driver::break_inds_channels(const std::vector<int32_t>& inds) {
     std::cout << "breaking channels ... " << std::flush;
 
     for (int32_t idx : inds) {
