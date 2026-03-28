@@ -8,7 +8,7 @@
 // ==================================================================
 
 TEST(add_water_to_n_groups, adds_water_to_single_pool) {
-    Driver driver(3, 2, 1, 1, 1, 10);
+    Swimming_pool::Driver driver(3, 2, 1, 1, 1, 10);
     driver.create_N_groups();
 
     auto water = []() { return 7.0; };
@@ -22,7 +22,7 @@ TEST(add_water_to_n_groups, adds_water_to_single_pool) {
 }
 
 TEST(add_water_to_n_groups, adds_water_to_several_pools) {
-    Driver driver(3, 3, 2, 1, 1, 10);
+    Swimming_pool::Driver driver(3, 3, 2, 1, 1, 10);
     driver.create_N_groups();
 
     std::vector<int> groups = {0, 1, 2};
@@ -39,7 +39,7 @@ TEST(add_water_to_n_groups, adds_water_to_several_pools) {
 }
 
 TEST(add_water_to_n_groups, accumulates_water_in_same_pool) {
-    Driver driver(2, 0, 0, 0, 1, 10);
+    Swimming_pool::Driver driver(2, 0, 0, 0, 1, 10);
     driver.create_N_groups();
 
     auto water = []() { return 4.0; };
@@ -52,7 +52,7 @@ TEST(add_water_to_n_groups, accumulates_water_in_same_pool) {
 }
 
 TEST(add_water_to_n_groups, uses_new_water_value_each_iteration) {
-    Driver driver(2, 1, 1, 1, 1, 10);
+    Swimming_pool::Driver driver(2, 1, 1, 1, 1, 10);
     driver.create_N_groups();
 
     const std::vector<double> waters = {1.0, 2.0, 3.0};
@@ -68,7 +68,7 @@ TEST(add_water_to_n_groups, uses_new_water_value_each_iteration) {
 }
 
 TEST(add_water_to_n_groups, does_nothing_when_n_is_zero) {
-    Driver driver(3, 0, 0, 0, 1, 10);
+    Swimming_pool::Driver driver(3, 0, 0, 0, 1, 10);
     driver.create_N_groups();
 
     auto water = []() { return 100.0; };

@@ -7,14 +7,14 @@
 // ==================================================================
 
 TEST(create_N_groups, one_group) {
-    Driver driver(1, 0, 0, 0, 1, 10);
+    Swimming_pool::Driver driver(1, 0, 0, 0, 1, 10);
     driver.create_N_groups();
 
     EXPECT_DOUBLE_EQ(driver.groups().get_level(0), 0.0);
 }
 
 TEST(create_N_groups, five_groups) {
-    Driver driver(5, 0, 0, 0, 1, 10);
+    Swimming_pool::Driver driver(5, 0, 0, 0, 1, 10);
     driver.create_N_groups();
 
     for (int32_t i = 0; i < driver.N(); ++i) {
@@ -23,7 +23,7 @@ TEST(create_N_groups, five_groups) {
 }
 
 TEST(create_N_groups, hundred_groups) {
-    Driver driver(100, 20, 15, 10, 5, 10);
+    Swimming_pool::Driver driver(100, 20, 15, 10, 5, 10);
     driver.create_N_groups();
 
     for (int32_t i = 0; i < driver.N(); ++i) {

@@ -9,6 +9,8 @@
 #include <fstream>
 #include <cstddef>
 
+namespace Swimming_pool {
+
 class Driver final {
 private:
     Groups groups_;
@@ -174,5 +176,7 @@ inline void Driver::break_inds_channels(const std::vector<int32_t>& inds) {
     groups_.close_channels(N_, channels_);
     print_completed();
 }
+
+} // namespace Swimming_pool 
 
 #endif // DRIVER_HPP

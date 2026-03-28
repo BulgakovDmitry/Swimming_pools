@@ -1,8 +1,11 @@
-#pragma once
+#ifndef GROUP_HPP
+#define GROUP_HPP
 
 #include <vector>
 #include <stddef.h>
 #include <cstdint>
+
+namespace Swimming_pool {
 
 struct Channel {
     int32_t channel_x;
@@ -121,3 +124,7 @@ inline void Groups::close_channels(const int32_t N, const std::vector<Channel>& 
 inline int32_t Groups::size(int32_t root) const noexcept {
     return -parent_or_size_[root];
 }
+
+} // namespace Swimming_pool
+
+#endif

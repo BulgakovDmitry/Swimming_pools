@@ -4,7 +4,7 @@
 #include "driver.hpp"
 
 int main() {
-    Driver driver{};
+    Swimming_pool::Driver driver{};
 
     std::random_device rd;          
     std::mt19937 gen(rd());        
