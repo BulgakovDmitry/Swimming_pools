@@ -36,6 +36,8 @@ public:
     const Groups& groups() const noexcept { return groups_; }
     Groups& groups() noexcept { return groups_; }
 
+    const std::vector<Channel>& channels() const noexcept { return channels_; }
+
     int32_t N() const noexcept {return N_;}
     int32_t K() const noexcept {return K_;}
     int32_t L() const noexcept {return L_;}
@@ -54,9 +56,9 @@ public:
     void measure_water();
 
     template<typename Generator>
-    void break_channels(Generator& gen);
+    void close_channels(Generator& gen);
     
-    void break_inds_channels(const std::vector<int32_t>& inds);
+    void close_inds_channels(const std::vector<int32_t>& inds);
     
 private:
     static void print_completed();
@@ -150,7 +152,7 @@ inline void Driver::measure_water() {
 }
 
 template<typename Generator>
-void Driver::break_channels(Generator& gen) {
+void Driver::close_channels(Generator& gen) {
     std::vector<int32_t> open_channels(channels_.size());
     std::iota(open_channels.begin(), open_channels.end(), 0);
 
@@ -161,10 +163,10 @@ void Driver::break_channels(Generator& gen) {
     std::vector<int32_t> indices_to_close(open_channels.begin(),
                                          open_channels.begin() + to_close);
 
-    break_inds_channels(indices_to_close);
+    close_inds_channels(indices_to_close);
 }
 
-inline void Driver::break_inds_channels(const std::vector<int32_t>& inds) {
+inline void Driver::close_inds_channels(const std::vector<int32_t>& inds) {
     std::cout << "breaking channels ... " << std::flush;
 
     for (int32_t idx : inds) {

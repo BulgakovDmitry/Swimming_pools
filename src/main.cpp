@@ -39,7 +39,7 @@ int main() {
     driver.measure_water();
 
     // 7. Разорвать M каналов между бассейнами ======================
-    driver.break_channels(gen);
+    driver.close_channels(gen);
     
     // 8. вновь добавить воды в L бассейнов =========================
     driver.add_water_to_n_groups(driver.L(), 

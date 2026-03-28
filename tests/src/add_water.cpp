@@ -80,3 +80,19 @@ TEST(add_water_to_n_groups, does_nothing_when_n_is_zero) {
     EXPECT_DOUBLE_EQ(driver.groups().get_level(1), 0.0);
     EXPECT_DOUBLE_EQ(driver.groups().get_level(2), 0.0);
 }
+
+TEST(add_water_to_n_groups, adds_water_to_connected_pools) {
+    Swimming_pool::Driver driver(3, 0, 0, 0, 1, 10);
+    driver.create_N_groups();
+
+    driver.groups().unite(0, 1);
+
+    auto water = []() { return 10.0; };
+    auto group = []() { return 0; };
+
+    driver.add_water_to_n_groups(1, water, group);
+
+    EXPECT_DOUBLE_EQ(driver.groups().get_level(0), 5.0);
+    EXPECT_DOUBLE_EQ(driver.groups().get_level(1), 5.0);
+    EXPECT_DOUBLE_EQ(driver.groups().get_level(2), 0.0);
+}

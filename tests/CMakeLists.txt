@@ -5,6 +5,9 @@ include(GoogleTest)
 set(SRC_LIST
     src/create_groups.cpp
     src/add_water.cpp
+    src/connect_pools.cpp
+    src/measure_water.cpp
+    src/close_channels.cpp
 )
 
 add_executable(driver ${SRC_LIST})
