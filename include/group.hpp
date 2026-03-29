@@ -8,11 +8,11 @@
 namespace Swimming_pool {
 
 struct Channel {
-    int32_t channel_x;
-    int32_t channel_y;
+    uint32_t channel_x;
+    uint32_t channel_y;
     bool    is_open;
 
-    Channel(int32_t x, int32_t y, bool is_open_flag = true) 
+    Channel(uint32_t x, uint32_t y, bool is_open_flag = true) 
         : channel_x(x), channel_y(y), is_open(is_open_flag) {}
 };
 
@@ -28,15 +28,15 @@ private:
 public:
     Groups(int32_t N);
 
-    void         add_group     (int32_t x, double litters_of_water) noexcept;
-    int32_t      find          (int32_t x) noexcept;
-    void         unite         (int32_t x, int32_t y) noexcept;
-    void         add_water     (int32_t x, double litters_of_water = 0) noexcept;
-    double       get_level     (int32_t x) noexcept;
-    void         close_channels(const int32_t N, const std::vector<Channel>& channels);
+    void         add_group     (uint32_t x, double litters_of_water) noexcept;
+    uint32_t     find          (uint32_t x) noexcept;
+    void         unite         (uint32_t x, uint32_t y) noexcept;
+    void         add_water     (uint32_t x, double litters_of_water = 0) noexcept;
+    double       get_level     (uint32_t x) noexcept;
+    void         close_channels(const uint32_t N, const std::vector<Channel>& channels);
 
 private:
-    int32_t size(int32_t root) const noexcept;
+    uint32_t size(uint32_t root) const noexcept;
 };
 
 // ----------------------------------------------------------------------------
@@ -45,15 +45,15 @@ private:
 // ----------------------------------------------------------------------------
 inline Groups::Groups(int32_t N) : parent_or_size_(N, 0), level_(N, 0) {}
 
-inline int32_t Groups::find(int32_t x) noexcept {
-    int32_t root = x;
+inline uint32_t Groups::find(uint32_t x) noexcept {
+    uint32_t root = x;
 
     while (parent_or_size_[root] >= 0) {
         root = parent_or_size_[root];
     }
 
     while (x != root) {
-        int32_t parent = parent_or_size_[x];
+        uint32_t parent = parent_or_size_[x];
         parent_or_size_[x] = root;
         x = parent;
     }
@@ -61,14 +61,14 @@ inline int32_t Groups::find(int32_t x) noexcept {
     return root;
 }
 
-inline void Groups::unite(int32_t x, int32_t y) noexcept {
-    int32_t root_x = find(x);
-    int32_t root_y = find(y);
+inline void Groups::unite(uint32_t x, uint32_t y) noexcept {
+    uint32_t root_x = find(x);
+    uint32_t root_y = find(y);
 
     if (root_x == root_y) return;
 
-    int32_t size_x = -parent_or_size_[root_x];
-    int32_t size_y = -parent_or_size_[root_y];
+    uint32_t size_x = -parent_or_size_[root_x];
+    uint32_t size_y = -parent_or_size_[root_y];
 
     if (size_x < size_y) {
         std::swap(root_x, root_y);
@@ -85,32 +85,32 @@ inline void Groups::unite(int32_t x, int32_t y) noexcept {
     level_[root_x] = total_level;
 }
 
-inline void Groups::add_water(int32_t x, double litters_of_water) noexcept {
-    int32_t root_x = find(x);
+inline void Groups::add_water(uint32_t x, double litters_of_water) noexcept {
+    uint32_t root_x = find(x);
     level_[root_x] += litters_of_water / size(root_x);
 }
 
-inline void Groups::add_group(int32_t x, double litters_of_water = 0) noexcept {
+inline void Groups::add_group(uint32_t x, double litters_of_water = 0) noexcept {
     parent_or_size_[x] = -1;
     level_[x] = litters_of_water;
 }
 
-inline double Groups::get_level(int32_t x) noexcept {
-    int32_t root = find(x);
+inline double Groups::get_level(uint32_t x) noexcept {
+    uint32_t root = find(x);
 
     return level_[root];
 }
 
-inline void Groups::close_channels(const int32_t N, const std::vector<Channel>& channels) {
+inline void Groups::close_channels(const uint32_t N, const std::vector<Channel>& channels) {
     std::vector<double> water(N, 0.0);
-    for (int32_t i = 0; i < N; ++i) {
+    for (uint32_t i = 0; i < N; ++i) {
         water[i] = get_level(i);
     }
 
     parent_or_size_.assign(N, 0);
     level_.assign(N, 0.0);
 
-    for (int32_t i = 0; i < N; ++i) {
+    for (uint32_t i = 0; i < N; ++i) {
         add_group(i, water[i]);
     }
 
@@ -121,7 +121,7 @@ inline void Groups::close_channels(const int32_t N, const std::vector<Channel>& 
     }
 }
 
-inline int32_t Groups::size(int32_t root) const noexcept {
+inline uint32_t Groups::size(uint32_t root) const noexcept {
     return -parent_or_size_[root];
 }
 

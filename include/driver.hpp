@@ -16,19 +16,19 @@ private:
     Groups groups_;
     std::vector<Channel> channels_;
 
-    int32_t N_;     // Количество бассейнов
-    int32_t K_;     // Количество каналов
-    int32_t L_;     // Количество добавлений воды
-    int32_t M_;     // Количество разрывов
-    int32_t A_, B_; // Количество добавляемой воды в каждый бассейн (от и до)
+    uint32_t N_;     // Количество бассейнов
+    uint32_t K_;     // Количество каналов
+    uint32_t L_;     // Количество добавлений воды
+    uint32_t M_;     // Количество разрывов
+    uint32_t A_, B_; // Количество добавляемой воды в каждый бассейн (от и до)
 
 public:
-    Driver(const int32_t N = 38'000'000, 
-           const int32_t K = 11'000'000,
-           const int32_t L = 29'000'000, 
-           const int32_t M = 3'000'000, 
-           const int32_t A = 1, 
-           const int32_t B = 500) 
+    Driver(const uint32_t N = 38'000'000, 
+           const uint32_t K = 11'000'000,
+           const uint32_t L = 29'000'000, 
+           const uint32_t M = 3'000'000, 
+           const uint32_t A = 1, 
+           const uint32_t B = 500) 
         : groups_(N), channels_(), N_(N), K_(K), L_(L), M_(M), A_(A), B_(B) {
             channels_.reserve(K_);
         }
@@ -38,17 +38,17 @@ public:
 
     const std::vector<Channel>& channels() const noexcept { return channels_; }
 
-    int32_t N() const noexcept {return N_;}
-    int32_t K() const noexcept {return K_;}
-    int32_t L() const noexcept {return L_;}
-    int32_t M() const noexcept {return M_;}
-    int32_t A() const noexcept {return A_;}
-    int32_t B() const noexcept {return B_;}
+    uint32_t N() const noexcept {return N_;}
+    uint32_t K() const noexcept {return K_;}
+    uint32_t L() const noexcept {return L_;}
+    uint32_t M() const noexcept {return M_;}
+    uint32_t A() const noexcept {return A_;}
+    uint32_t B() const noexcept {return B_;}
 
     void create_N_groups();
 
     template<typename Water_amount, typename Group_ind>
-    void add_water_to_n_groups(int32_t n, Water_amount&& liters_of_water, Group_ind&& group_index);
+    void add_water_to_n_groups(uint32_t n, Water_amount&& liters_of_water, Group_ind&& group_index);
 
     template<typename Pool>
     void connect_pulls_with_channels(Pool pool);
@@ -58,11 +58,11 @@ public:
     template<typename Generator>
     void close_channels(Generator& gen);
     
-    void close_inds_channels(const std::vector<int32_t>& inds);
+    void close_inds_channels(const std::vector<uint32_t>& inds);
     
 private:
     static void print_completed();
-    static uint64_t make_channel_key(int32_t a, int32_t b);
+    static uint64_t make_channel_key(uint32_t a, uint32_t b);
 
     void measure(std::ofstream& output);
     void measure();
@@ -72,7 +72,7 @@ private:
 inline void Driver::create_N_groups() {
     std::cout << "pools creation ... " << std::flush; 
 
-    for (int32_t i = 0; i < N_; ++i) {
+    for (uint32_t i = 0; i < N_; ++i) {
        groups_.add_group(i, 0);
     }
 
@@ -80,10 +80,10 @@ inline void Driver::create_N_groups() {
 }
 
 template<typename Water_amount, typename Group_ind>
-void Driver::add_water_to_n_groups(int32_t n, Water_amount&& liters_of_water, Group_ind&& group_index) {
+void Driver::add_water_to_n_groups(uint32_t n, Water_amount&& liters_of_water, Group_ind&& group_index) {
     std::cout << "adding water ... " << std::flush; 
 
-    for (int32_t i = 0; i < n; ++i) {
+    for (uint32_t i = 0; i < n; ++i) {
         groups_.add_water(group_index(), liters_of_water());
     }
 
@@ -94,27 +94,25 @@ inline void Driver::print_completed() {
     std::cout << "is completed\n";
 }
 
-inline uint64_t Driver::make_channel_key(int32_t a, int32_t b) {
+inline uint64_t Driver::make_channel_key(uint32_t a, uint32_t b) {
     if (a > b) {
         std::swap(a, b);
     }
 
-    return (static_cast<uint64_t>(static_cast<uint32_t>(a)) << 32) |
-           static_cast<uint32_t>(b);
+    return (static_cast<uint64_t>(a) << 32) | b;
 }
 
 inline void Driver::measure(std::ofstream& output) {
     output << "========= measurement =========\n";
-    for (int32_t i = 0; i < N_; ++i) {
+    for (uint32_t i = 0; i < N_; ++i) {
         output << "pool " << i << ": " << groups_.get_level(i) << '\n';
     }
     output << std::endl;
 }
 
 inline void Driver::measure() {
-    for (int32_t i = 0; i < N_; ++i) {
+    for (uint32_t i = 0; i < N_; ++i) {
         groups_.get_level(i);
-        asm volatile("" : : "g"(i) : "memory");
     }
 }
 
@@ -123,11 +121,11 @@ void Driver::connect_pulls_with_channels(Pool pool) {
     std::cout << "connect pools with channels ... " << std::flush; 
     std::unordered_set<uint64_t> used_channels;
     used_channels.reserve(static_cast<size_t>(K_) * 2);
-    size_t number_of_channels = 0;
+    uint32_t number_of_channels = 0;
 
     while (number_of_channels < K_) {
-        int32_t sp_1 = pool();
-        int32_t sp_2 = pool();
+        uint32_t sp_1 = pool();
+        uint32_t sp_2 = pool();
 
         if (sp_1 == sp_2) continue;
 
@@ -158,18 +156,18 @@ void Driver::close_channels(Generator& gen) {
 
     std::shuffle(open_channels.begin(), open_channels.end(), gen);
 
-    int32_t to_close = std::min(M_, static_cast<int32_t>(channels_.size()));
+    uint32_t to_close = std::min(M_, static_cast<uint32_t>(channels_.size()));
 
-    std::vector<int32_t> indices_to_close(open_channels.begin(),
+    std::vector<uint32_t> indices_to_close(open_channels.begin(),
                                          open_channels.begin() + to_close);
 
     close_inds_channels(indices_to_close);
 }
 
-inline void Driver::close_inds_channels(const std::vector<int32_t>& inds) {
+inline void Driver::close_inds_channels(const std::vector<uint32_t>& inds) {
     std::cout << "breaking channels ... " << std::flush;
 
-    for (int32_t idx : inds) {
+    for (uint32_t idx : inds) {
         if (idx < channels_.size()) {
             channels_[idx].is_open = false;
         }

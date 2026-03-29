@@ -19,7 +19,7 @@ int main() {
     driver.create_N_groups();
 
     // 2. добавить воды в каждый бассейн ============================
-    int32_t group_index = 0;
+    uint32_t group_index = 0;
     driver.add_water_to_n_groups(driver.N(), 
         [&](){return dist_add_water(gen);}, 
         [&](){return group_index++;});
