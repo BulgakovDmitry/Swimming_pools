@@ -47,8 +47,8 @@ public:
 
     void create_N_groups();
 
-    template<typename Water, typename Group>
-    void add_water_to_n_groups(int32_t n, Water liters_of_water, Group group_index);
+    template<typename Water_amount, typename Group_ind>
+    void add_water_to_n_groups(int32_t n, Water_amount&& liters_of_water, Group_ind&& group_index);
 
     template<typename Pool>
     void connect_pulls_with_channels(Pool pool);
@@ -79,8 +79,8 @@ inline void Driver::create_N_groups() {
     print_completed();
 }
 
-template<typename Water, typename Group>
-void Driver::add_water_to_n_groups(int32_t n, Water liters_of_water, Group group_index) {
+template<typename Water_amount, typename Group_ind>
+void Driver::add_water_to_n_groups(int32_t n, Water_amount&& liters_of_water, Group_ind&& group_index) {
     std::cout << "adding water ... " << std::flush; 
 
     for (int32_t i = 0; i < n; ++i) {
