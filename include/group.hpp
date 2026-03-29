@@ -87,7 +87,7 @@ inline void Groups::unite(int32_t x, int32_t y) noexcept {
 
 inline void Groups::add_water(int32_t x, double litters_of_water) noexcept {
     int32_t root_x = find(x);
-    level_[root_x] += litters_of_water / static_cast<double>(size(root_x));
+    level_[root_x] += litters_of_water / size(root_x);
 }
 
 inline void Groups::add_group(int32_t x, double litters_of_water = 0) noexcept {
