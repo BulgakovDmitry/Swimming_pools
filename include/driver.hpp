@@ -70,7 +70,7 @@ private:
 };
 
 inline void Driver::create_N_groups() {
-    std::cout << "pools creation ... " << std::flush; 
+    std::cout << "pools creation ...              " << std::flush; 
 
     for (uint32_t i = 0; i < N_; ++i) {
        groups_.add_group(i, 0);
@@ -81,7 +81,7 @@ inline void Driver::create_N_groups() {
 
 template<typename Water_amount, typename Group_ind>
 void Driver::add_water_to_n_groups(uint32_t n, Water_amount&& liters_of_water, Group_ind&& group_index) {
-    std::cout << "adding water ... " << std::flush; 
+    std::cout << "adding water ...                " << std::flush; 
 
     for (uint32_t i = 0; i < n; ++i) {
         groups_.add_water(group_index(), liters_of_water());
@@ -144,7 +144,7 @@ void Driver::connect_pulls_with_channels(Pool pool) {
 }
 
 inline void Driver::measure_water() {
-    std::cout << "measuring the water ... " << std::flush; 
+    std::cout << "measuring the water ...         " << std::flush; 
     measure();
     print_completed();
 }
@@ -165,7 +165,7 @@ void Driver::close_channels(Generator& gen) {
 }
 
 inline void Driver::close_inds_channels(const std::vector<uint32_t>& inds) {
-    std::cout << "breaking channels ... " << std::flush;
+    std::cout << "breaking channels ...           " << std::flush;
 
     for (uint32_t idx : inds) {
         if (idx < channels_.size()) {
